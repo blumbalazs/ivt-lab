@@ -120,26 +120,16 @@ public class GT4500Test {
     verify(mockSecondaryTorperodeStore,times(1)).fire(1);
     assertEquals(false, result);
   }
-  @Test
-  public void isPrimaryTorpedoEmpty(){
-      // Arrange
-
-      //Act
-
-      boolean result = mockPrimaryTorperodeStore.isEmpty();
-      //Assert
-
-      assertEquals(false, result);
-  }
 
   @Test
   public void fireTorpedoAfterTorpedoStoresAreEmpty(){
       // Arrange
+      when(mockPrimaryTorperodeStore.fire(1)).thenReturn(false);
+      when(mockSecondaryTorperodeStore.fire(1)).thenReturn(false);
+      when(mockPrimaryTorperodeStore.isEmpty()).thenReturn(true);
+      when(mockSecondaryTorperodeStore.isEmpty()).thenReturn(true);
 
       //Act
-      while(mockPrimaryTorperodeStore.getTorpedoCount() !=0 || mockSecondaryTorperodeStore.getTorpedoCount() !=0){
-        ship.fireTorpedo(FiringMode.ALL);
-      }
       boolean result = ship.fireTorpedo(FiringMode.ALL);
       
       //Assert
@@ -160,15 +150,15 @@ public class GT4500Test {
   public void fireSecondaryTorpedoStoreWhenEmptyPrimaryHasTorpedo(){
     // Arrange
     //Mock valami oknál fogva be cachelődött és a TorpedoStore.isEmpty függvénye mindig trueval tért vissza
-    mockPrimaryTorperodeStore = new TorpedoStore(2);
-    mockSecondaryTorperodeStore = new TorpedoStore(0);
-    this.ship = new GT4500(mockPrimaryTorperodeStore,mockSecondaryTorperodeStore);
+    when(mockPrimaryTorperodeStore.fire(1)).thenReturn(true);
+    when(mockSecondaryTorperodeStore.fire(1)).thenReturn(false);
+    when(mockPrimaryTorperodeStore.isEmpty()).thenReturn(false);
+    when(mockSecondaryTorperodeStore.isEmpty()).thenReturn(true);
 
     //primary lövés hogy következő secondary legyen
     ship.fireTorpedo(FiringMode.SINGLE);
 
     //Act
-
     boolean result = ship.fireTorpedo(FiringMode.SINGLE);
     //Assert
     assertEquals(true, result);
@@ -176,11 +166,10 @@ public class GT4500Test {
   @Test
   public void firePrimaryTorpedoStoreWhenEmptySecondaryHasTorpedo(){
     // Arrange
-
-    //Mock valami oknál fogva be cachelődött és a TorpedoStore.isEmpty függvénye mindig trueval tért vissza
-    mockPrimaryTorperodeStore = new TorpedoStore(0);
-    mockSecondaryTorperodeStore = new TorpedoStore(1);
-    this.ship = new GT4500(mockPrimaryTorperodeStore,mockSecondaryTorperodeStore);
+    when(mockPrimaryTorperodeStore.fire(1)).thenReturn(false);
+    when(mockSecondaryTorperodeStore.fire(1)).thenReturn(true);
+    when(mockPrimaryTorperodeStore.isEmpty()).thenReturn(true);
+    when(mockSecondaryTorperodeStore.isEmpty()).thenReturn(false);
 
     //Act
     boolean result = ship.fireTorpedo(FiringMode.SINGLE);
@@ -190,14 +179,27 @@ public class GT4500Test {
   }
   @Test
   public void fireAllWhenEmpty(){
-        //Mock valami oknál fogva be cachelődött és a TorpedoStore.isEmpty függvénye mindig trueval tért vissza
-        mockPrimaryTorperodeStore = new TorpedoStore(0);
-        mockSecondaryTorperodeStore = new TorpedoStore(0);
-        this.ship = new GT4500(mockPrimaryTorperodeStore,mockSecondaryTorperodeStore);
-        //Act
-        boolean result = ship.fireTorpedo(FiringMode.ALL);
+    //Arrange
+    when(mockPrimaryTorperodeStore.fire(1)).thenReturn(false);
+    when(mockSecondaryTorperodeStore.fire(1)).thenReturn(false);
+    when(mockPrimaryTorperodeStore.isEmpty()).thenReturn(false);
+    when(mockSecondaryTorperodeStore.isEmpty()).thenReturn(false);
+    //Act
+    boolean result = ship.fireTorpedo(FiringMode.ALL);
 
-        //Assert
-        assertEquals(false, result);
+    //Assert
+    assertEquals(false, result);
+  }
+  @Test
+  public void fireAllWithPrimaryTorpedoStoreEmpty(){
+    //Arrange
+    when(mockPrimaryTorperodeStore.isEmpty()).thenReturn(true);
+    when(mockSecondaryTorperodeStore.isEmpty()).thenReturn(false);
+    when(mockPrimaryTorperodeStore.fire(1)).thenReturn(false);
+    when(mockSecondaryTorperodeStore.fire(1)).thenReturn(true);
+    //Act
+    boolean result = ship.fireTorpedo(FiringMode.ALL);
+    //Assert
+    assertEquals(true, result);
   }
 }
